@@ -2,8 +2,12 @@ package com.example.kaushik.imagedatacollection;
 
 import android.app.LauncherActivity;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -40,6 +44,7 @@ public class PostActivity extends AppCompatActivity {
         Button commentButton = findViewById(R.id.commentButtonId);
         final ListView commentListView = findViewById(R.id.commentListViewId);
         final int[] postNo = {1};
+        final int[] count = {1};
         final boolean[] isLiked = {false};
         final List<String> comments = new ArrayList<>();
 
@@ -55,6 +60,11 @@ public class PostActivity extends AppCompatActivity {
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
+                serviceIntent.putExtra("imageName", postNo[0]+"_"+count[0]);
+                count[0]++;
+                PostActivity.this.startService(serviceIntent);
+                stopService(new Intent(PostActivity.this, PhotoTakingService.class));
                 if (postNo[0] == 14)
                 {
                     nextButton.setText("Finish");
@@ -66,6 +76,7 @@ public class PostActivity extends AppCompatActivity {
                 }
                 else
                 {
+                    count[0] = 1;
                     postNo[0]++;
                     initializePost(postNo[0], postNoTextView, postImageView, isLikedTextView);
                     isLikedImageButton.setImageResource(R.drawable.like_unpessed);
@@ -76,6 +87,8 @@ public class PostActivity extends AppCompatActivity {
                 }
             }
         });
+
+        final int[] charCount = {0};
 
         isLikedImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,7 +104,38 @@ public class PostActivity extends AppCompatActivity {
                     isLiked[0] = true;
                     isLikedImageButton.setImageResource(R.drawable.like_pressed);
                     isLikedTextView.setText("You have liked this post");
+                    Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
+                    serviceIntent.putExtra("imageName", postNo[0]+"_"+count[0]);
+                    count[0]++;
+                    PostActivity.this.startService(serviceIntent);
+                    stopService(new Intent(PostActivity.this, PhotoTakingService.class));
                 }
+            }
+        });
+
+
+        commentEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() - charCount[0] == 5)
+                {
+                    charCount[0] += 5;
+                    Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
+                    serviceIntent.putExtra("imageName", postNo[0]+"_"+count[0]);
+                    count[0]++;
+                    PostActivity.this.startService(serviceIntent);
+                    stopService(new Intent(PostActivity.this, PhotoTakingService.class));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
             }
         });
 
