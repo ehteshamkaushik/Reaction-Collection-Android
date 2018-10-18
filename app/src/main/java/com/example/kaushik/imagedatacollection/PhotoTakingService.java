@@ -11,28 +11,61 @@ import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Process;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class PhotoTakingService extends Service {
+    private Looper mServiceLooper;
+    private ServiceHandler mServiceHandler;
     String imageName;
+    static Camera camera = null;
+
+    private final class ServiceHandler extends Handler {
+        public ServiceHandler(Looper looper) {
+            super(looper);
+        }
+        @Override
+        public void handleMessage(Message msg) {
+            takePhoto(PhotoTakingService.this);
+            stopSelf(msg.arg1);
+        }
+    }
     @Override
     public void onCreate() {
         super.onCreate();
-        takePhoto(this);
     }
 
     @Override
-    public int onStartCommand (Intent intent, int flags, int startId) {
-        imageName = intent.getStringExtra("imageName");
+    public int onStartCommand (final Intent intent, int flags, final int startId) {
+        showMessage("Started Service for " + imageName);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                imageName = intent.getStringExtra("imageName");
+                showMessage("Image Name : " + imageName);
+                HandlerThread thread = new HandlerThread("ServiceStartArguments",
+                        Process.THREAD_PRIORITY_BACKGROUND);
+                thread.start();
+                mServiceLooper = thread.getLooper();
+                mServiceHandler = new ServiceHandler(mServiceLooper);
+
+                Message msg = mServiceHandler.obtainMessage();
+                msg.arg1 = startId;
+                mServiceHandler.sendMessage(msg);
+            }
+        }).start();
+
         return START_STICKY;
     }
 
@@ -42,14 +75,11 @@ public class PhotoTakingService extends Service {
         SurfaceHolder holder = preview.getHolder();
         // deprecated setting, but required on Android versions prior to 3.0
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override
             //The preview must happen at or after this point or takePicture fails
             public void surfaceCreated(SurfaceHolder holder) {
                 showMessage("Surface created");
-
-                Camera camera = null;
 
                 try {
                     camera = Camera.open(1);
@@ -62,14 +92,14 @@ public class PhotoTakingService extends Service {
                     }
 
                     camera.startPreview();
-                    showMessage("Started preview");
+                    showMessage("Started preview for " + imageName);
 
                     camera.takePicture(null, null, new android.hardware.Camera.PictureCallback() {
-
                         @Override
-                        public void onPictureTaken(byte[] data, Camera camera) {
+                        public void onPictureTaken(final byte[] data, Camera camera) {
+                            camera.release();
+                            showMessage("Stopped Preview For " + imageName);
                             showMessage("Took picture");
-
                             if (data != null)
                             {
                                 Bitmap bitmapTemp = BitmapFactory.decodeByteArray(data , 0, data .length);
@@ -97,9 +127,9 @@ public class PhotoTakingService extends Service {
                                     {
                                         FileOutputStream fileOutputStream=new FileOutputStream(file);
                                         bitmap.compress(Bitmap.CompressFormat.JPEG,100, fileOutputStream);
-
                                         fileOutputStream.flush();
                                         fileOutputStream.close();
+                                        showMessage("Saved File " + file.getAbsolutePath());
                                     }
                                     catch(IOException e){
                                         e.printStackTrace();
@@ -118,14 +148,16 @@ public class PhotoTakingService extends Service {
                             {
                                 showMessage("Null Data");
                             }
-
-                            camera.release();
                         }
                     });
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
                     if (camera != null)
+                    {
                         camera.release();
-                    throw new RuntimeException(e);
+                    }
+                    //throw new RuntimeException(e);
                 }
             }
 
