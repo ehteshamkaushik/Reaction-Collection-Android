@@ -73,12 +73,10 @@ public class PhotoTakingService extends Service {
                             if (data != null)
                             {
                                 Bitmap bitmapTemp = BitmapFactory.decodeByteArray(data , 0, data .length);
-
                                 Matrix matrix = new Matrix();
                                 matrix.postRotate(-90);
                                 Bitmap rotatedBitmap = Bitmap.createBitmap(bitmapTemp, 0, 0, bitmapTemp.getWidth(), bitmapTemp.getHeight(),
                                         matrix, true);
-
                                 int width = rotatedBitmap.getWidth();
                                 int height = rotatedBitmap.getHeight();
                                 float scaleWidth = ((float) 600) / width;
@@ -90,15 +88,11 @@ public class PhotoTakingService extends Service {
 
                                 if (bitmap != null)
                                 {
-
                                     File file=new File(Environment.getExternalStorageDirectory()+"/dirr");
                                     if(!file.isDirectory()){
                                         file.mkdir();
                                     }
-
                                     file=new File(Environment.getExternalStorageDirectory()+"/dirr",imageName+".jpg");
-
-
                                     try
                                     {
                                         FileOutputStream fileOutputStream=new FileOutputStream(file);

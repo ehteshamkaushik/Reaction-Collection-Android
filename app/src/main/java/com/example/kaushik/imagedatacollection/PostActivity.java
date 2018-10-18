@@ -1,13 +1,22 @@
 package com.example.kaushik.imagedatacollection;
 
 import android.app.LauncherActivity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.graphics.PixelFormat;
+import android.hardware.Camera;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -22,10 +31,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PostActivity extends AppCompatActivity {
+
+    public SurfaceView preview = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +75,8 @@ public class PostActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
-                serviceIntent.putExtra("imageName", postNo[0]+"_"+count[0]);
+                String imageName = postNo[0]+"_"+count[0];
+                serviceIntent.putExtra("imageName", imageName);
                 count[0]++;
                 PostActivity.this.startService(serviceIntent);
                 stopService(new Intent(PostActivity.this, PhotoTakingService.class));
@@ -104,11 +119,14 @@ public class PostActivity extends AppCompatActivity {
                     isLiked[0] = true;
                     isLikedImageButton.setImageResource(R.drawable.like_pressed);
                     isLikedTextView.setText("You have liked this post");
+                    final String imageName = postNo[0]+"_"+count[0];
                     Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
-                    serviceIntent.putExtra("imageName", postNo[0]+"_"+count[0]);
+                    serviceIntent.putExtra("imageName", imageName);
                     count[0]++;
                     PostActivity.this.startService(serviceIntent);
                     stopService(new Intent(PostActivity.this, PhotoTakingService.class));
+
+
                 }
             }
         });
@@ -125,11 +143,13 @@ public class PostActivity extends AppCompatActivity {
                 if (charSequence.length() - charCount[0] == 5)
                 {
                     charCount[0] += 5;
+                    /*
                     Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
                     serviceIntent.putExtra("imageName", postNo[0]+"_"+count[0]);
                     count[0]++;
                     PostActivity.this.startService(serviceIntent);
                     stopService(new Intent(PostActivity.this, PhotoTakingService.class));
+                    */
                 }
             }
 
@@ -189,4 +209,5 @@ public class PostActivity extends AppCompatActivity {
         listView.setLayoutParams(params);
         listView.requestLayout();
     }
+
 }
