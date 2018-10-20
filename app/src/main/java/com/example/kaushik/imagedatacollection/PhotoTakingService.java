@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
@@ -65,7 +63,6 @@ public class PhotoTakingService extends Service {
                 mServiceHandler.sendMessage(msg);
             }
         }).start();
-
         return START_STICKY;
     }
 
