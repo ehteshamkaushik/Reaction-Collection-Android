@@ -78,7 +78,8 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
         final boolean[] isLiked = {false};
         final List<String> comments = new ArrayList<>();
         final long keyBoardDynamicsFeatures[][]=new long[15][9];
-
+        commentEditText.setFocusableInTouchMode(true);
+        //commentEditText.setFocusable(false);
         senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
@@ -103,7 +104,7 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
                 count[0]++;
                 PostActivity.this.startService(serviceIntent);
 
-                //stopService(new Intent(PostActivity.this, PhotoTakingService.class));
+                stopService(new Intent(PostActivity.this, PhotoTakingService.class));
                 if (postNo[0] == 14)
                 {
                     nextButton.setText("Finish");
@@ -149,9 +150,11 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
                     Intent serviceIntent = new Intent(PostActivity.this, PhotoTakingService.class);
                     serviceIntent.putExtra("imageName", imageName);
                     count[0]++;
+
                     PostActivity.this.startService(serviceIntent);
+
                     //stopService(new Intent(PostActivity.this, PhotoTakingService.class));
-                    
+
                 }
             }
         });
@@ -185,6 +188,7 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
             public void onFocusChange(View view, boolean hasFocus) {
                 if (hasFocus)
                 {
+
                     a1=System.currentTimeMillis();
                     startTime=a1;
                     startAcc=0;
@@ -196,14 +200,19 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
                     endSpeed=0;
                     endAngle=0;
                     endRotation=0;
+                    Toast.makeText(PostActivity.this, "startTime: "+String.valueOf(a1), Toast.LENGTH_SHORT).show();
+
                 }
                 else if(!hasFocus)
                 {
                     b1=System.currentTimeMillis();
                     if(b1>=a1)
                     {
+
                         c1=c1+(b1-a1);
                     }
+                    Toast.makeText(PostActivity.this, "endTime: "+String.valueOf(b1), Toast.LENGTH_SHORT).show();
+
                     keyBoardDynamicsFeatures[postNo[0]][1]=keyBoardDynamicsFeatures[postNo[0]][1]+c1; //Time
                     keyBoardDynamicsFeatures[postNo[0]][2]= (long) (keyBoardDynamicsFeatures[postNo[0]][2]+speed); //speed
                     keyBoardDynamicsFeatures[postNo[0]][3]= (long) (keyBoardDynamicsFeatures [postNo[0]][3]+accelationTotal); //acceleration
@@ -227,6 +236,7 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
         commentButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 l1=0;
                 String comment = commentEditText.getText().toString();
                 commentEditText.clearFocus();
@@ -244,7 +254,7 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
 
 
 
-                    typingSpeed=keyBoardDynamicsFeatures[postNo[0]][0]*1000/keyBoardDynamicsFeatures[postNo[0]][1];
+                    typingSpeed=(double)keyBoardDynamicsFeatures[postNo[0]][0]*1000/(double)keyBoardDynamicsFeatures[postNo[0]][1];
                     shakePerLength=keyBoardDynamicsFeatures[postNo[0]][2]/keyBoardDynamicsFeatures[postNo[0]][0];
                     accelerationPerLength=keyBoardDynamicsFeatures[postNo[0]][3]/keyBoardDynamicsFeatures[postNo[0]][0];
                     anglePerLength=keyBoardDynamicsFeatures[postNo[0]][4]/keyBoardDynamicsFeatures[postNo[0]][0];
@@ -252,7 +262,7 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
 
 
 
-                    String content = "Comment : " + comment + "\nTyping Speed : " + typingSpeed+
+                    String content = "\n\nComment : " + comment + "\nTyping Speed : " + typingSpeed+
                             "\nShake Per Length : "+shakePerLength+"\nAcceleration Per Length : "+
                             accelerationPerLength+
                             "\nAngel Per Length : "+anglePerLength+"\nRotation Per Length : "+rotationPerLength+"\n";
@@ -264,7 +274,7 @@ public class PostActivity extends AppCompatActivity implements SensorEventListen
                     if(!file.isDirectory()){
                         file.mkdir();
                     }
-                    file=new File(Environment.getExternalStorageDirectory()+"/dirr","ImageCollectorLog.txt");
+                    file=new File(Environment.getExternalStorageDirectory()+"/dirr","CommentCollectorLog.txt");
                     if (!file.exists())
                     {
                         try {
